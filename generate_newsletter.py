@@ -1,10 +1,12 @@
 import json
 import re
 import time
+import os
 from pathlib import Path
 from html import escape
 
 import requests  # pip3 install requests
+from resend import Resend  # pip3 install resend
 
 # ---------- CONFIG ----------
 JSON_PATH = Path("output.json")
@@ -12,6 +14,7 @@ TEMPLATE_PATH = Path("template_base.html")
 
 HTML_OUTPUT_PATH = Path("newsletter_issue_0001.html")
 CONTEXT_OUTPUT_PATH = Path("contexts.txt")
+EMAILS_FILE_PATH = Path("emails.txt")
 
 ISSUE_DATE = "November 26, 2025"
 ISSUE_NUMBER = "0001"
@@ -22,6 +25,13 @@ MAX_CHARS_FOR_AI = 2000
 # Test mode (limit number of articles while developing)
 TEST_MODE = True
 TEST_COUNT = 20
+
+# Email configuration
+SEND_EMAILS = False  # Set to True to enable email sending
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")  # Get from environment variable
+SENDER_EMAIL = os.getenv("SENDER_EMAIL", "newsletter@yourdomain.com")  # Your verified domain email
+SENDER_NAME = "The M&A Letter"
+EMAIL_SUBJECT = f"The M&A Letter - Issue {ISSUE_NUMBER} ({ISSUE_DATE})"
 
 
 # ---------- LOAD ARTICLES ----------
@@ -539,6 +549,99 @@ def build_contexts_text(articles):
     return "".join(build_context_entry(a) for a in articles if a.get("url"))
 
 
+# ---------- EMAIL FUNCTIONALITY ----------
+def load_emails_from_file(emails_path: Path) -> list[str]:
+    """
+    Read email addresses from a text file.
+    Expected format: one email per line, empty lines and lines starting with # are ignored.
+    """
+    if not emails_path.exists():
+        print(f"⚠️  Emails file not found: {emails_path}")
+        return []
+    
+    emails = []
+    with emails_path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            # Skip empty lines and comments
+            if not line or line.startswith("#"):
+                continue
+            # Basic email validation
+            if "@" in line and "." in line:
+                emails.append(line)
+            else:
+                print(f"⚠️  Skipping invalid email format: {line}")
+    
+    return emails
+
+
+def send_newsletter_email(resend_client: Resend, recipient_email: str, html_content: str, subject: str) -> bool:
+    """
+    Send newsletter email to a single recipient using Resend API.
+    Returns True if successful, False otherwise.
+    """
+    try:
+        params = {
+            "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
+            "to": [recipient_email],
+            "subject": subject,
+            "html": html_content,
+        }
+        
+        response = resend_client.emails.send(params)
+        
+        # Handle different response formats
+        if isinstance(response, dict):
+            email_id = response.get('id') or response.get('data', {}).get('id', 'N/A')
+        else:
+            email_id = getattr(response, 'id', 'N/A')
+        
+        print(f"   ✔ Sent to {recipient_email} (ID: {email_id})")
+        return True
+    except Exception as e:
+        print(f"   ✗ Failed to send to {recipient_email}: {str(e)}")
+        return False
+
+
+def send_newsletters_to_all(html_content: str, emails: list[str], subject: str) -> dict:
+    """
+    Send newsletter to all email addresses.
+    Returns a dictionary with success/failure statistics.
+    """
+    if not RESEND_API_KEY:
+        print("❌ RESEND_API_KEY not set. Please set it as an environment variable.")
+        return {"success": 0, "failed": 0, "total": len(emails)}
+    
+    resend_client = Resend(api_key=RESEND_API_KEY)
+    
+    print(f"\n📧 Sending newsletters to {len(emails)} recipients...")
+    print(f"   From: {SENDER_EMAIL}")
+    print(f"   Subject: {subject}\n")
+    
+    success_count = 0
+    failed_count = 0
+    
+    for idx, email in enumerate(emails, start=1):
+        print(f"[{idx}/{len(emails)}] Sending to {email}...", end=" ")
+        if send_newsletter_email(resend_client, email, html_content, subject):
+            success_count += 1
+        else:
+            failed_count += 1
+        # Small delay to avoid rate limiting
+        time.sleep(0.5)
+    
+    print(f"\n📊 Email sending summary:")
+    print(f"   ✅ Successful: {success_count}")
+    print(f"   ❌ Failed: {failed_count}")
+    print(f"   📧 Total: {len(emails)}")
+    
+    return {
+        "success": success_count,
+        "failed": failed_count,
+        "total": len(emails)
+    }
+
+
 # ---------- MAIN ----------
 def main():
     articles = load_articles(JSON_PATH)
@@ -577,6 +680,16 @@ def main():
     contexts = build_contexts_text(enriched)
     CONTEXT_OUTPUT_PATH.write_text(contexts, encoding="utf-8")
     print(f"🗒 Contexts: {CONTEXT_OUTPUT_PATH.resolve()}")
+
+    # Send emails if enabled
+    if SEND_EMAILS:
+        emails = load_emails_from_file(EMAILS_FILE_PATH)
+        if emails:
+            send_newsletters_to_all(html, emails, EMAIL_SUBJECT)
+        else:
+            print("\n⚠️  No emails found to send. Please check emails.txt file.")
+    else:
+        print("\n💡 Email sending is disabled. Set SEND_EMAILS = True to enable.")
 
     print("\n🚀 Completed")
 

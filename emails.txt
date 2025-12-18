@@ -1,0 +1,10 @@
+# Customer Email List
+# Add one email address per line
+# Lines starting with # are ignored
+# Empty lines are ignored
+
+# Example emails (replace with actual customer emails):
+# customer1@example.com
+# customer2@example.com
+# customer3@example.com
+
