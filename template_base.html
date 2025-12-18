@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>The M&A Letter</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      color: #444444;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      box-shadow: 0 0 8px rgba(0,0,0,0.08);
+    }
+
+    .page-inner {
+      padding: 24px 40px 32px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 18px 0;
+    }
+
+    /* ---- Header ---- */
+    .header-top {
+      text-align: center;
+      padding-top: 24px;
+    }
+
+    .header-title {
+      font-size: 46px;
+      font-weight: 300;
+      color: #27D6E6;
+      letter-spacing: 1px;
+      text-decoration: underline;
+      text-underline-offset: 6px;
+      margin: 0 0 8px;
+    }
+
+    .header-powered {
+      font-size: 18px;
+      font-weight: 300;
+      margin-top: 4px;
+    }
+
+    .header-powered .brand {
+      font-weight: 700;
+      color: #27D6E6;
+    }
+
+    .header-bar {
+      border-top: 4px solid #27D6E6;
+      margin-top: 18px;
+    }
+
+    .header-tagline-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #777777;
+      padding: 10px 0 4px;
+    }
+
+    .header-tagline {
+      max-width: 70%;
+    }
+
+    .header-issue-meta {
+      text-align: right;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .header-issue-meta div + div {
+      margin-top: 2px;
+    }
+
+    /* ---- Deal blocks ---- */
+    .deal-block {
+      padding: 20px 0 16px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .deal-title-main {
+      font-size: 26px;
+      font-weight: 600;
+      margin: 4px 0 8px;
+      border-bottom: 2px solid #444444;
+      padding-bottom: 4px;
+    }
+
+    .deal-title-main a {
+      color: #000000;
+      text-decoration: none;
+    }
+
+    .deal-title-main a:hover {
+      text-decoration: underline;
+    }
+
+    .deal-meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #777777;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+    }
+
+    .deal-meta-label {
+      font-weight: 600;
+    }
+
+    .deal-body {
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 6px;
+      color: #444444;
+    }
+
+    /* ---- CEO / investor footer row ---- */
+    .deal-footer-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #777777;
+      margin-top: 8px;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+    }
+
+    .deal-footer-item {
+      /* just a simple container; flex will space them */
+    }
+
+    /* ---- Footer ---- */
+    .footer-ribbon {
+      background-color: #27D6E6;
+      color: #ffffff;
+      font-size: 12px;
+      padding: 14px 40px;
+      margin-top: 18px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="page-inner">
+
+      <div class="header-top">
+        <h1 class="header-title">The M&amp;A Letter</h1>
+
+        <div class="header-powered">
+          Powered by <span class="brand">DataVision</span>
+        </div>
+      </div>
+
+      <div class="header-bar"></div>
+
+      <div class="header-tagline-row">
+        <div class="header-tagline">
+          Custom deal coverage in your inbox every week showcasing the most relevant M&amp;A deals for you
+        </div>
+        <div class="header-issue-meta">
+          <div>{{ISSUE_DATE}}</div>
+          <div>ISSUE {{ISSUE_NUMBER}}</div>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Deal blocks injected by Python -->
+      {{DEAL_BLOCKS}}
+
+    </div>
+
+    <div class="footer-ribbon">
+      DataVision is building an Agentic AI-native SaaS platform for Investment Banking, Private Equity,
+      and Venture Capital professionals that hyper-accelerates deal workflows by freeing analysts from
+      documentation overload so they can focus on sourcing, transactions, and closing.
+    </div>
+
+  </div>
+</body>
+</html>
